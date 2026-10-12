@@ -1,0 +1,19 @@
+appId: org.realtimeearth.simulator
+productName: Real-Time Earth Simulator
+directories:
+  output: release
+files:
+  - dist/**/*
+  - "!dist/textures/**/*"
+  - dist-electron/**/*
+  - package.json
+asar: true
+npmRebuild: false
+win:
+  target: nsis
+mac:
+  target: dmg
+  category: public.app-category.education
+linux:
+  target: AppImage
+  category: Education

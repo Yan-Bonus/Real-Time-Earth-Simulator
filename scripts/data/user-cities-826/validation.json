@@ -1,0 +1,32 @@
+{
+  "record_count": 826,
+  "china_count": 308,
+  "foreign_count": 518,
+  "country_count": 195,
+  "merged_original_ids": [
+    "GIN-CAP-1395"
+  ],
+  "checks": {
+    "unique_ids": true,
+    "coordinates_valid": true,
+    "descriptions_present": true,
+    "image_urls_present": true,
+    "image_sources_present": true,
+    "china_count_308": true,
+    "countries_195": true,
+    "no_svg_or_person_portrait": true
+  },
+  "all_checks_passed": true,
+  "image_license_not_stated_ids": [
+    "IND-WUP-11221",
+    "IND-WUP-10889",
+    "IND-WUP-10789",
+    "ZAF-WUP-4203"
+  ],
+  "coordinate_roles": {
+    "encyclopedia_representative_point": 796,
+    "wikidata_representative_point": 28,
+    "population_weighted_centroid": 2
+  },
+  "validation_scope": "结构、必填字段、数值范围、来源字段、去重及已发现误匹配检查；未逐张人工鉴赏或对全部外链执行可用性检测。"
+}

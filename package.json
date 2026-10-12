@@ -1,0 +1,55 @@
+{
+  "name": "real-time-earth-simulator",
+  "private": true,
+  "version": "0.4.0-alpha.8",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run build:electron && node scripts/dev.mjs",
+    "build": "node scripts/verify-global.mjs && tsc -b && npm run build:electron && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "typecheck": "tsc -b && tsc -p tsconfig.electron.json --noEmit",
+    "check": "npm run lint && npm run build",
+    "dev:web": "vite",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "start": "npm run build && node scripts/start.mjs",
+    "pack": "npm run build && electron-builder --dir",
+    "dist:win": "npm run build && electron-builder --win --publish never",
+    "dist:mac": "npm run build && electron-builder --mac --publish never",
+    "dist:linux": "npm run build && electron-builder --linux --publish never",
+    "test:desktop": "npm run build && node scripts/smoke.mjs",
+    "test:desktop:dev": "npm run build:electron && node scripts/smoke.mjs dev",
+    "test:imagery": "node --test scripts/tiles.test.mjs",
+    "test:region": "npm run build && node scripts/region-smoke.mjs fixture",
+    "test:online": "npm run build && node scripts/online-smoke.mjs fixture",
+    "test:solar": "node --test scripts/solar.test.mjs",
+    "test:v02": "npm run build && node scripts/solar-smoke.mjs"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@types/three": "^0.186.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "electron": "^44.5.1",
+    "electron-builder": "^26.15.3",
+    "oxlint": "^1.81.0",
+    "playwright": "^1.63.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "packageManager": "npm@11.11.0",
+  "main": "dist-electron/main.js",
+  "description": "Cross-platform real-time Earth simulator desktop application",
+  "author": "闫哲宇"
+}

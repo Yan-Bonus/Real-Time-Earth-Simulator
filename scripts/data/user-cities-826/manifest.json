@@ -1,0 +1,36 @@
+{
+  "dataset_version": "1.0",
+  "record_count": 826,
+  "files": [
+    {
+      "path": "cities.jsonl",
+      "bytes": 1801077,
+      "sha256": "ae99843e87ed27c4d5a53f0b0f90ca19378c24d6ddff380b8394747fa8f66d8c"
+    },
+    {
+      "path": "cities.json",
+      "bytes": 2263164,
+      "sha256": "cdaf57e52c96db1abd73a6a9b30b55f69b01cd395d6e8f367bcf9a8547cc2449"
+    },
+    {
+      "path": "city-record.schema.json",
+      "bytes": 2946,
+      "sha256": "33ef4390172ec84a360450ca3b9cb65e62e60a7df1d9f1ca1b755fb74dcf7a81"
+    },
+    {
+      "path": "countries.json",
+      "bytes": 23647,
+      "sha256": "4d9e7f22ef239d414faed21a49355bc3ccef83e608f33e0793ac1db1c679081b"
+    },
+    {
+      "path": "README.md",
+      "bytes": 6605,
+      "sha256": "5d8ecd0e0e9761b1e78f9a5c6dec67c32ba8d5c2bff60bfb248bb8426b34476e"
+    },
+    {
+      "path": "validation.json",
+      "bytes": 931,
+      "sha256": "5957995fe71ee11d3b3a9a6c2ae23cec14c1b2ef4acf8a3ea878f0fec28a6148"
+    }
+  ]
+}

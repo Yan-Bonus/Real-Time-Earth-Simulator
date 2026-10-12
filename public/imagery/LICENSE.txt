@@ -1,0 +1,6 @@
+EOX Sentinel-2 cloudless 2024, WGS84 level 3.
+© EOX · Contains modified Copernicus Sentinel data 2024
+CC BY-NC-SA 4.0: https://creativecommons.org/licenses/by-nc-sa/4.0/
+Source: https://cloudless.eox.at/products/viewing
+This application currently uses these resources for non-commercial evaluation.
+Global atlas assembled losslessly from 128 decoded service tiles; satellite imagery is historical, not live.

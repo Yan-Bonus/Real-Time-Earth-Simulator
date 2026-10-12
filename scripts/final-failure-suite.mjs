@@ -1,0 +1,7 @@
+import assert from 'node:assert/strict'
+import path from 'node:path'
+import {spawn} from 'node:child_process'
+import {mkdir,readFile,writeFile} from 'node:fs/promises'
+import {createHash} from 'node:crypto'
+const exe=path.resolve('release/win-unpacked/Real-Time Earth Simulator.exe'),out=path.resolve(process.env.EARTH_TEST_OUTPUT_ROOT?path.join(process.env.EARTH_TEST_OUTPUT_ROOT,'final-failure-suite'):'test-results/v03-final-failure-suite');await mkdir(out,{recursive:true});const bytes=await readFile(path.join(path.dirname(exe),'resources/app.asar')),sha256=createHash('sha256').update(bytes).digest('hex'),steps=[];
+for(const script of ['ancestor-recovery','saved-target-reuse','corrupt-target-repair','save-validation','idle-focus']){console.log('RUN '+script);const started=performance.now(),child=spawn(process.execPath,['scripts/'+script+'.mjs',exe],{cwd:process.cwd(),env:process.env,windowsHide:true}),log=[];child.stdout.on('data',v=>log.push(v));child.stderr.on('data',v=>log.push(v));const code=await new Promise((resolve,reject)=>{child.on('error',reject);child.on('close',resolve)});await writeFile(path.join(out,script+'.log'),Buffer.concat(log));steps.push({script,code,elapsedMs:performance.now()-started});await writeFile(path.join(out,'summary.json'),JSON.stringify({exe,asarSha256:sha256,steps,pass:code===0&&steps.length===5},null,2));assert.equal(code,0,'Failed '+script);console.log('PASS '+script)}

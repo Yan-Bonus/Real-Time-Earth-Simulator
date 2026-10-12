@@ -1,0 +1,8 @@
+import assert from 'node:assert/strict'
+import {readFile,mkdir,writeFile} from 'node:fs/promises'
+import path from 'node:path'
+import {_electron as electron} from 'playwright'
+const out=path.resolve(process.env.EARTH_TEST_OUTPUT_ROOT?path.join(process.env.EARTH_TEST_OUTPUT_ROOT,'save-validation'):'test-results/v03-save-validation'),profile=path.join(out,'profile-'+Date.now());await mkdir(out,{recursive:true});const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;delete env.EARTH_DEV_URL
+const args=['--mute-audio','--user-data-dir='+profile],exe=process.argv[2];const app=await electron.launch(exe?{executablePath:path.resolve(exe),args,env}:{args:['.',...args],env});try{const page=await app.firstWindow();await page.getByRole('heading',{name:'地球观察室',exact:true}).waitFor();const bytes=await readFile('scripts/fixtures/eox-level3-0-0.jpg');
+ const result=await page.evaluate(async payload=>{const tile={source:'eox',z:13,row:777,col:777},good=new Uint8Array(payload);const stored=await window.desktop.imagery.save(tile,good);let rejected=false;try{await window.desktop.imagery.save(tile,good.slice(0,220))}catch{rejected=true}const read=await window.desktop.imagery.read(tile);return{stored,rejected,unchanged:read?.length===good.length&&read.every((v,i)=>v===good[i])}},[...bytes]);assert.deepEqual(result,{stored:true,rejected:true,unchanged:true});await writeFile(path.join(out,'result.json'),JSON.stringify(result,null,2));console.log(result);console.log(await page.evaluate(()=>({timeoutIsError:new DOMException('timeout','TimeoutError') instanceof Error,abortIsError:new DOMException('abort','AbortError') instanceof Error})))
+}finally{await app.close()}

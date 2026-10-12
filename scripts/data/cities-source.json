@@ -1,0 +1,8 @@
+{
+  "provider": "Natural Earth",
+  "dataset": "50m populated places",
+  "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_populated_places.geojson",
+  "license": "Public domain",
+  "snapshotSha256": "da4662b7bbfeb897d02f228c5839131dce27acff5717630f91ccff4f67828ee7",
+  "cities": 1251
+}
