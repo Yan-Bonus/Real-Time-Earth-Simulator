@@ -7,13 +7,19 @@ files:
   - "!dist/textures/**/*"
   - dist-electron/**/*
   - package.json
+extraResources:
+  - from: build/icons/icon.png
+    to: icons/icon.png
 asar: true
 npmRebuild: false
 win:
   target: nsis
+  icon: build/icons/icon.ico
 mac:
   target: dmg
+  icon: build/icons/icon.icns
   category: public.app-category.education
 linux:
   target: AppImage
+  icon: build/icons/icon.png
   category: Education

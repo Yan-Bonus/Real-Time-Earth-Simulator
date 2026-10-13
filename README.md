@@ -26,7 +26,7 @@ npm run dev
 npm run pack
 ```
 
-输出到release/。公开源码不包含用户私有音乐和图标；使用Electron默认图标，音乐控件保留但禁用。需要音乐时将有授权的本地文件配置到src/app/backgroundMusic.ts，不要提交私有资源。
+输出到release/。公开源码包含项目维护者提供并确认允许分发的应用图标与背景音乐。音乐默认循环播放，支持开关及音量调节，不提供选曲界面。这些素材不自动适用代码MIT许可。
 
 ## 数据与网络
 
@@ -46,3 +46,4 @@ node --test scripts/*.test.mjs
 ## 开源协议
 
 原始应用代码按[MIT](LICENSE)发布，第三方资源保持原许可。
+

@@ -26,9 +26,7 @@ test-results
 *.sln
 *.sw?
 
-# Private media and credentials
-public/audio/*.mp3
-build/icons/
+# Credentials and private files
 .env
 .env.*
 *.pem
@@ -37,3 +35,4 @@ private/
 
 .npm-cache/
 failed-install-archive/
+

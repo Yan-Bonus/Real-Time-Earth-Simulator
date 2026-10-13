@@ -1,3 +1,2 @@
-// Private audio is intentionally excluded from this public source distribution.
-// Set a locally licensed file URL here to enable the existing music controls.
-export const backgroundMusicSource: string | null = null
+// The user-selected track is bundled locally; there is no track picker.
+export const backgroundMusicSource = import.meta.env.BASE_URL + 'audio/background-music.mp3'

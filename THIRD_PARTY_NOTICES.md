@@ -21,6 +21,7 @@ The reference package has separate per-source and per-record terms. Its README, 
 
 Legacy NASA files and NASA test fixtures retain their source attribution and media-use conditions. See public/textures/README.md and test-fixtures/README.md. No NASA endorsement is implied.
 
-## Excluded private media
+## Maintainer-supplied music and application icon
 
-The supplied background music and application icon are not included. Public builds use Electron default branding and disable music until a locally licensed track is configured. Local private builds are unchanged.
+On 2026-10-13 the project maintainer confirmed permission to distribute the supplied background music and application icon in the public repository and software. The files are included with their original source notes in public/audio/README.md and build/icons/README.md. This confirmation is provided by the maintainer; third-party documentation has not been independently audited. Copyright remains with the respective rights holders. The root MIT code license does not automatically grant unrelated reuse or relicensing rights for these media files.
+

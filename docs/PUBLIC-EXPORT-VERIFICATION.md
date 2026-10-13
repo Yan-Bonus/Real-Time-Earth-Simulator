@@ -12,3 +12,9 @@
 - MIT applies to original code only; imagery/datasets keep separate licenses. See THIRD_PARTY_NOTICES.md.
 
 This public source release does not claim all prior desktop tests were repeated on this export. Historical anomalies are described in docs/STATUS.md.
+
+## Media inclusion update — 2026-10-13
+
+The maintainer confirmed permission for public distribution of both supplied media assets. Music and PNG/ICO/ICNS icons are restored, music source and packaging configuration re-enabled. The earlier excluded-media verification above refers to the initial snapshot and is not a certification of this updated snapshot. Original development and desktop files remain unchanged.
+
+Updated-export checks: npm run check passed. Desktop packaging passed using the installed Electron runtime, with executable icon/resource editing enabled and code signing disabled. Packaged MP3 and window PNG bytes match the supplied source files; supplied PNG/ICO/ICNS/MP3 hashes match the development originals. Existing packaged music regression passed: autoplay, default volume20%, loop boundary, on/off, full volume range and persisted preferences after reload; no page errors. This supersedes the initial export's disabled-music and failed-launch observation for the tested music workflow, without asserting complete desktop visual acceptance or a fresh dependency install.

@@ -9,6 +9,7 @@ const localEntry = fileURLToPath(new URL('../dist/index.html', import.meta.url))
 async function createWindow() {
   const window = new BrowserWindow({
     title: 'Real-Time Earth Simulator',
+    icon: app.isPackaged ? join(process.resourcesPath, 'icons', 'icon.png') : fileURLToPath(new URL('../build/icons/icon.png', import.meta.url)),
     width: 1100,
     height: 800,
     minWidth: 720,
@@ -114,3 +115,4 @@ app.whenReady().then(async () => {
 app.on('window-all-closed', () => {
   app.quit()
 })
+
