@@ -6,6 +6,7 @@ import { ImageryStore } from './imagery-store.js'
 const devUrl = !app.isPackaged && process.env.EARTH_DEV_URL
 const localEntry = fileURLToPath(new URL('../dist/index.html', import.meta.url))
 
+const activityHistory:{at:number;event:string;visible:boolean;minimized:boolean;focused:boolean}[]=[]
 async function createWindow() {
   const window = new BrowserWindow({
     title: 'Real-Time Earth Simulator',
@@ -28,10 +29,9 @@ async function createWindow() {
     },
   })
 
-  const activity=()=>window.webContents.send('window:activity',window.isVisible()&&!window.isMinimized())
-  window.on('show',activity);window.on('hide',activity)
-  window.on('minimize',activity);window.on('restore',activity)
-  window.webContents.on('did-finish-load',activity)
+  const activity=(event:string)=>{if(activityHistory.length>=200)activityHistory.shift();activityHistory.push({at:Date.now(),event,visible:window.isVisible(),minimized:window.isMinimized(),focused:window.isFocused()});window.webContents.send('window:activity',window.isVisible()&&!window.isMinimized())}
+  window.on('show',()=>activity('show'));window.on('hide',()=>activity('hide'));window.on('minimize',()=>activity('minimize'));window.on('restore',()=>activity('restore'));window.on('focus',()=>activity('focus'));window.on('blur',()=>activity('blur'))
+  window.webContents.on('did-finish-load',()=>activity('did-finish-load'))
   window.setMenuBarVisibility(false)
   window.once('ready-to-show', () => {
     window.maximize()
@@ -42,9 +42,6 @@ async function createWindow() {
     if (input.key === 'F11') {
       event.preventDefault()
       window.setFullScreen(!window.isFullScreen())
-    } else if (input.key === 'Escape' && window.isFullScreen()) {
-      event.preventDefault()
-      void window.webContents.executeJavaScript('(()=>{const button=document.querySelector("#viewer-settings .settings-heading button");if(button){button.click();return true}return !window.dispatchEvent(new Event("earth:cancel-flight",{cancelable:true}))})()').then(closed=>{if(!closed)window.setFullScreen(false)}).catch(()=>window.setFullScreen(false))
     }
   })
   window.webContents.setWindowOpenHandler(({ url }) => {
@@ -99,6 +96,8 @@ app.whenReady().then(async () => {
     void Promise.race([store.flush(),new Promise<void>(resolve=>setTimeout(resolve,5000))]).finally(()=>{flushed=true;app.quit()})
   })
   const trusted=(event:Electron.IpcMainInvokeEvent)=>{if(!BrowserWindow.fromWebContents(event.sender)||event.senderFrame!==event.sender.mainFrame)throw Error('Invalid imagery client')}
+  ipcMain.handle('window:exit-fullscreen',event=>{trusted(event);BrowserWindow.fromWebContents(event.sender)?.setFullScreen(false)})
+  ipcMain.handle('window:diagnostics',event=>{trusted(event);return [...activityHistory]})
   ipcMain.handle('window:activity-state',event=>{trusted(event);const window=BrowserWindow.fromWebContents(event.sender);return !!window&&window.isVisible()&&!window.isMinimized()})
   ipcMain.handle('imagery:read',(event,input:unknown)=>{trusted(event);return store.read(input)})
   ipcMain.handle('imagery:assemble',(event,input:unknown)=>{trusted(event);return store.canAssemble(input)})
@@ -115,4 +114,3 @@ app.whenReady().then(async () => {
 app.on('window-all-closed', () => {
   app.quit()
 })
-

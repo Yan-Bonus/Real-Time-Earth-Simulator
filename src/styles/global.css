@@ -230,3 +230,32 @@ button:focus-visible { outline: 2px solid #90bde0; outline-offset: 4px; }
 
 .city-marker:focus-visible{outline:none;}
 .city-marker:focus-visible .city-dot{outline:1px solid #adc6d0;outline-offset:2px;}
+/* V0.4 interaction integration: compact but fully operable controls. */
+.scene-tools[hidden]{display:none;}
+.time-toolbar-compact .time-toolbar-row label{display:block;min-width:0;}
+.time-toolbar-compact .time-toolbar-row label>span{display:none;}
+.time-toolbar-compact .time-toolbar-row select{margin-top:0;padding:6px 3px;}
+.time-toolbar-compact .compact-time-state{display:flex;justify-content:space-between;gap:8px;margin:0 0 8px;font-variant-numeric:tabular-nums;}
+.compact-time-state time{white-space:nowrap;}
+.time-toolbar-compact .now-button{position:static;width:100%;margin-top:8px;padding:5px 8px;}
+.viewer[data-observing=true] .viewer-info{width:300px;}
+.viewer[data-observing=true] .panel-toggle{top:calc(var(--viewer-header-height,160px) + 8px);}
+.date-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.date-actions .reset-button{font-size:.68rem;padding:7px;}
+.city-selection{position:absolute;left:36px;bottom:calc(var(--viewer-footer-height,90px) + 12px);z-index:2;width:240px;max-height:calc(100% - var(--viewer-header-height,160px) - var(--viewer-footer-height,90px) - 32px);overflow:auto;background:#0b1424f5;border:1px solid #334760;border-radius:8px;padding:12px;}
+.city-selection .city-info{border:0;margin:0;padding:0;}
+.city-info-compact p{margin:5px 0 10px;}
+.city-marker[data-hovered=true] .city-label,.city-marker[aria-pressed=true] .city-label{color:#e1e4db;text-shadow:0 1px 3px #000,0 0 3px #000;}
+.settings-panel>.settings-heading{position:sticky;top:0;z-index:1;background:#0b1424fa;padding:4px 0 10px;}
+.viewer[data-narrow=true] .viewer-header{padding:16px 20px;gap:12px;flex-wrap:nowrap;}
+.viewer[data-narrow=true] .eyebrow,.viewer[data-narrow=true] .clock-panel,.viewer[data-narrow=true] .version{display:none;}
+.viewer[data-narrow=true] h1{font-size:.88rem;letter-spacing:.04em;}
+.viewer[data-narrow=true] .viewer-info{width:min(300px,calc(100vw - 142px));flex-shrink:0;}
+.viewer[data-narrow=true] .scene-tools,.viewer[data-narrow=true] .settings-panel{left:20px;top:calc(var(--viewer-header-height,140px) + 12px);width:min(300px,calc(100% - 40px));max-height:calc(100% - var(--viewer-header-height,140px) - var(--viewer-footer-height,90px) - 24px);}
+.viewer[data-narrow=true] .panel-toggle{right:20px;top:calc(var(--viewer-header-height,140px) + 12px);}
+.viewer[data-narrow=true] .city-selection{left:20px;width:230px;}
+.viewer[data-narrow=true] .viewer-footer{padding:12px 20px;flex-direction:column;align-items:stretch;gap:6px;}
+.viewer[data-narrow=true] .viewer-footer>div:first-child{max-width:100%;}
+.viewer[data-narrow=true] .instructions,.viewer[data-narrow=true] .city-entry-hint{display:none;}
+.viewer[data-narrow=true] .viewer-actions{align-self:flex-end;}
+.viewer[data-narrow=true] .imagery-credit{font-size:.56rem;}

@@ -2,6 +2,8 @@ import { contextBridge, ipcRenderer } from 'electron'
 
 contextBridge.exposeInMainWorld('desktop', Object.freeze({
   platform: process.platform,
+  exitFullscreen: ()=>ipcRenderer.invoke('window:exit-fullscreen'),
+  windowDiagnostics: ()=>ipcRenderer.invoke('window:diagnostics'),
   onActivity: (listener:(active:boolean)=>void)=>{
     let revision=0,disposed=false
     const handler=(_event:Electron.IpcRendererEvent,active:boolean)=>{revision++;listener(active)}

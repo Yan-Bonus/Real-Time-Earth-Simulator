@@ -64,8 +64,8 @@ function CameraControls({resetToken,regionToken,sunToken,hasView,cityFocus,retur
   // Camera input never waits for the network. The complete online globe covers every direction.
   return <OrbitControls onChange={()=>traceRender('camera.change')} ref={controls} enabled={hasView} enablePan={false} enableDamping dampingFactor={0.12} zoomSpeed={0.8} minDistance={1.5} maxDistance={8}/>
 }
-function EarthScene({resetToken,regionToken,onRegionStatus,axis,equator,grid,onDiagnostics,source,highest,retryToken,solar,sunToken,cosmic,cities,selectedCity,cityFocus,onSelectCity,returnToken,onReturnAvailable}:{
-  returnToken:number;onReturnAvailable:(available:boolean)=>void;cities:boolean;selectedCity:City|null;cityFocus:CityFocus|null;onSelectCity:(city:City)=>void
+function EarthScene({resetToken,regionToken,onRegionStatus,axis,equator,grid,onDiagnostics,source,highest,retryToken,solar,sunToken,cosmic,cities,selectedCity,cityFocus,onSelectCity,onFocusCity,returnToken,onReturnAvailable}:{
+  returnToken:number;onReturnAvailable:(available:boolean)=>void;cities:boolean;selectedCity:City|null;cityFocus:CityFocus|null;onSelectCity:(city:City)=>void;onFocusCity:(city:City)=>void
   cosmic:CosmicOptions;solar:SolarOptions;sunToken:number;source:ImagerySource;highest:boolean;retryToken:number;resetToken:number;regionToken:number;onRegionStatus:(status:OnlineStatus)=>void;axis:boolean;equator:boolean;grid:boolean;onDiagnostics?:(value:SceneDiagnostics)=>void
 }) {
   useEffect(()=>traceRender('scene.reactCommit'))
@@ -81,7 +81,7 @@ function EarthScene({resetToken,regionToken,onRegionStatus,axis,equator,grid,onD
       <RotatingEarth onDiagnostics={onDiagnostics}>
         <RegionalImagery source={source} highest={highest} pixelRatio={pixelRatio} retryToken={retryToken} onStatus={onRegionStatus} onUsable={onUsable}/>
         <SolarEffects options={solar}/>
-        <CityLayer layer={cityLayer} enabled={hasView&&cities} selected={selectedCity} onSelect={onSelectCity}/>
+        <CityLayer layer={cityLayer} enabled={hasView&&cities} selected={selectedCity} onSelect={onSelectCity} onFocusCity={onFocusCity}/>
         <EarthGuides axis={hasView&&axis} equator={hasView&&equator} grid={hasView&&grid}/>
       </RotatingEarth>
       <CameraControls resetToken={resetToken} regionToken={regionToken} sunToken={sunToken} hasView={hasView} cityFocus={cityFocus} returnToken={returnToken} onReturnAvailable={onReturnAvailable}/>

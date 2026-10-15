@@ -37,3 +37,11 @@ export class MotionObservation {
  }
  decay(now:number){this.speed*=Math.exp(-Math.max(0,now-this.speedAt)/100);this.speedAt=now;return this.speed}
 }
+
+/** Optional surroundings wait after a failure; visible target refinement never uses this gate. */
+export class PrefetchBackoff {
+ private until=0
+ ready(now:number){return now>=this.until}
+ failure(now:number,retryMs:number){this.until=Math.max(this.until,now+Math.max(10000,retryMs))}
+ reset(){this.until=0}
+}

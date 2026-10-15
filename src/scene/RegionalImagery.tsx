@@ -3,14 +3,14 @@ import { isWindowActive, subscribeActivity } from '../engine/windowActivity'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { BufferGeometry, CanvasTexture, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, SRGBColorSpace, Texture } from 'three'
-import { AdaptiveDownloads, motionDetailLevel, MotionObservation } from '../imagery/scheduling'
+import { AdaptiveDownloads, PrefetchBackoff, motionDetailLevel, MotionObservation } from '../imagery/scheduling'
 import {blockingFailure,classifyFailure,httpFailure,failureMessage,failureDelay,affectsThroughput,sharedRetryDelay,loadingPhase,TileFailure} from '../imagery/failures'
 import { earthMaterial } from './EarthAppearance'
 import { selectClearView } from '../imagery/view'
 import { ancestors, children, matrix, surfacePoint, tileBounds, tileKey, tileUrl, validTile, SOURCES, type ImagerySource, type TileId } from '../imagery/tiles'
 
 export interface OnlineStatus {
-  source: ImagerySource; phase: 'loading' | 'ready' | 'error' | 'limited'; loaded: number; total: number; hasView: boolean
+  source: ImagerySource; displayedSource?: ImagerySource; phase: 'loading' | 'ready' | 'error' | 'limited'; loaded: number; total: number; hasView: boolean
   maxTexelRatio: number; targetDistance: number; message: string; saveWarning?:string
   runtime?:{assets:number;textureBytes:number;running:number;network:number;decode:number;reads:number;uploads:number;failures:number;motion:boolean;requested:number;canceled:number;decoded:number;uploaded:number;discarded:number;diskReads:number;diskHits:number;evicted:number;selections:number}
 }
@@ -41,6 +41,7 @@ export default function RegionalImagery(props:Props) {
   useEffect(()=>{
     const group=root.current!
     const downloadControls=new Map<ImagerySource,AdaptiveDownloads>([['eox',new AdaptiveDownloads()],['nasa',new AdaptiveDownloads()]])
+    const prefetchBackoffs=new Map<ImagerySource,PrefetchBackoff>([['eox',new PrefetchBackoff()],['nasa',new PrefetchBackoff()]])
     let adaptive=downloadControls.get(latest.current.source)!
     const attempts=new Map<string,number>(), firstQueued=new Map<string,number>()
     const failureReasons=new Map<string,string>(),runningJobs=new Map<string,Job>(),runningStarted=new Map<string,number>(),networkJobs=new Set<string>()
@@ -117,7 +118,7 @@ export default function RegionalImagery(props:Props) {
       const phase=loadingPhase(baseReady,failed,limited,loaded===total,moving,selectionCurrent)
       const message=!baseReady?(failed?(source==='eox'?'内置全球资源加载失败，请重试或修复安装':(failureReasons.get(failedKey??'')??'全球地表加载失败，请检查网络后重试')):(source==='eox'?'正在读取内置全球影像':'正在准备全球地表')):phase==='ready'?'当前视角高清已就绪':phase==='limited'?'已达到当前画质预算，仍可自由浏览':phase==='error'?(failureReasons.get(failedKey??'')??'部分高清影像暂不可用，请重试'):'正在补充高清细节'
       const runtime={assets:cache.size,textureBytes:Math.round(cacheBytes()+baseBytes()),running:active,network:networkActive,decode:decodeActive,reads:readsActive,uploads:uploads.length,failures:failures.size,motion:moving,requested,canceled,decoded,uploaded,discarded,diskReads,diskHits,evicted,selections}
-      const status={source,phase,loaded,total,hasView:usable,maxTexelRatio:density,targetDistance:selectedDistance,message,saveWarning,runtime} satisfies OnlineStatus
+      const status={source,displayedSource,phase,loaded,total,hasView:usable,maxTexelRatio:density,targetDistance:selectedDistance,message,saveWarning,runtime} satisfies OnlineStatus
       const encoded=JSON.stringify(status);if(encoded!==lastMessage){if(phase!==lastPhase||performance.now()-lastStatusAt>=200){clearTimeout(statusTimer);statusTimer=undefined;lastMessage=encoded;lastPhase=phase;lastStatusAt=performance.now();traceRender('imagery.status');latest.current.onStatus(status)}else if(statusTimer===undefined)statusTimer=window.setTimeout(()=>{statusTimer=undefined;update()},Math.max(1,200-(performance.now()-lastStatusAt)))}
     }
     const localReads=new Map<string,Promise<Uint8Array|null>>(),localBytes=new Map<string,Uint8Array>();let localByteCount=0
@@ -248,14 +249,14 @@ export default function RegionalImagery(props:Props) {
         }
         for(const [key]of intermediate)if(!firstQueued.has(key))firstQueued.set(key,performance.now())
         queue.push(...[...intermediate].sort((a,b)=>priority(b[1],b[0])-priority(a[1],a[0])))
-        if(performance.now()-lastMove>500&&cacheBytes()+baseBytes()<MAX_TEXTURE_BYTES*.85)for(const [key,job]of prefetch)if(!cache.has(key))queue.push([key,job])
+        if(prefetchBackoffs.get(source)!.ready(performance.now())&&performance.now()-lastMove>500&&cacheBytes()+baseBytes()<MAX_TEXTURE_BYTES*.85)for(const [key,job]of prefetch)if(!cache.has(key))queue.push([key,job])
       }
       const now=performance.now()
       for(const [key,job]of queue){
         if(active>=16||uploads.length>=8)break
         if(running.has(key)||uploads.some(item=>item.key===key)||(failures.get(key)??0)>now||(attempts.get(key)??0)>=5)continue
         const controller=new AbortController();running.set(key,controller);runningJobs.set(key,job);runningStarted.set(key,now);active++
-        void download(job,controller).then(bitmap=>{if(!bitmap)return;if(disposed||controller.signal.aborted||(job.source!==latest.current.source||(!job.base&&!needed.has(key)))){bitmap.close();discarded++;return}uploads.push({job,key,bitmap});traceRender('imagery.uploadReady');invalidate()}).catch(error=>{const failure=classifyFailure(error);if(!disposed&&!controller.signal.aborted&&failure.kind!=='canceled'){const attempt=(attempts.get(key)??0)+1,delay=failureDelay(failure,attempt);attempts.set(key,attempt);failureReasons.set(key,failureMessage(failure));failures.set(key,performance.now()+delay);if(affectsThroughput(failure))downloadControls.get(job.source)!.failure(performance.now(),sharedRetryDelay(failure,delay))}}).finally(()=>{
+        void download(job,controller).then(bitmap=>{if(!bitmap)return;if(disposed||controller.signal.aborted||(job.source!==latest.current.source||(!job.base&&!needed.has(key)))){bitmap.close();discarded++;return}uploads.push({job,key,bitmap});traceRender('imagery.uploadReady');invalidate()}).catch(error=>{const failure=classifyFailure(error);if(!disposed&&!controller.signal.aborted&&failure.kind!=='canceled'){const attempt=(attempts.get(key)??0)+1,delay=failureDelay(failure,attempt);if(prefetch.has(key)&&!wanted.has(key))prefetchBackoffs.get(job.source)!.failure(performance.now(),delay);attempts.set(key,attempt);failureReasons.set(key,failureMessage(failure));failures.set(key,performance.now()+delay);if(affectsThroughput(failure))downloadControls.get(job.source)!.failure(performance.now(),sharedRetryDelay(failure,delay))}}).finally(()=>{
           active--;running.delete(key);runningJobs.delete(key);runningStarted.delete(key);if(!disposed){update();pump()}
         })
       }
@@ -288,7 +289,7 @@ export default function RegionalImagery(props:Props) {
       for(const [key,controller]of running){const job=runningJobs.get(key);if(job?.source!==options.source||(!key.startsWith('base/')&&(!needed.has(key)||(job&&job.id.z>motionLevel(job.source)&&networkJobs.has(key)&&performance.now()-(runningStarted.get(key)??0)<responseMs*.7))))abortWork(controller)}
       for(const key of failures.keys())if(failures.size>1024&&!needed.has(key)&&!running.has(key)&&!key.startsWith('base/')){failures.delete(key);attempts.delete(key);failureReasons.delete(key)}
       for(let i=uploads.length-1;i>=0;i--)if(uploads[i].job.source!==options.source||(!uploads[i].job.base&&!needed.has(uploads[i].key))){uploads[i].bitmap.close();discarded++;uploads.splice(i,1)}
-      if(options.retryToken!==retryToken){retryToken=options.retryToken;failures.clear();attempts.clear();failureReasons.clear();checkedLocal.clear();if(options.source==='eox'&&base.error)loadBundled(base)}
+      if(options.retryToken!==retryToken){retryToken=options.retryToken;for(const backoff of prefetchBackoffs.values())backoff.reset();failures.clear();attempts.clear();failureReasons.clear();checkedLocal.clear();if(options.source==='eox'&&base.error)loadBundled(base)}
       if(base.mesh)show();update();prune();pump()
     }
     function checkStopped(){

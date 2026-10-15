@@ -1,0 +1,7 @@
+const fs=require('fs'),path=require('path'),crypto=require('crypto'),root=path.resolve('.');
+const asar=require(root+'/node_modules/@electron/asar'),archive=root+'/release/win-unpacked/resources/app.asar',sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+const entries=['package.json','dist/index.html','dist-electron/main.js','dist-electron/preload.cjs','dist-electron/imagery-store.js','dist/audio/background-music.mp3','dist/imagery/eox-2024-global.png','dist/imagery/global-manifest.json',...fs.readdirSync(root+'/dist/assets').map(n=>'dist/assets/'+n)];
+const result={version:JSON.parse(asar.extractFile(archive,'package.json')).version,asarSha256:sha(fs.readFileSync(archive)),files:[]};
+for(const name of entries){const bytes=asar.extractFile(archive,path.normalize(name));if(name==='package.json'){if(result.version!==JSON.parse(fs.readFileSync(root+'/package.json')).version)throw Error('Version mismatch');continue}const equal=bytes.equals(fs.readFileSync(root+'/'+name));result.files.push({name,equal,bytes:bytes.length,sha256:sha(bytes)});if(!equal)throw Error('Mismatch: '+name)}
+const icon=fs.readFileSync(root+'/release/win-unpacked/resources/icons/icon.png');if(!icon.equals(fs.readFileSync(root+'/build/icons/icon.png')))throw Error('Icon mismatch');result.icon={equal:true,sha256:sha(icon)};
+fs.writeFileSync(root+'/test-results/v04/ux-alpha9/package.json',JSON.stringify(result,null,2));console.log({version:result.version,matched:result.files.length,icon:result.icon.equal,hash:result.asarSha256});

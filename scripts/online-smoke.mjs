@@ -34,6 +34,12 @@ try {
   }
   await page.addInitScript(epoch=>{const NativeDate=Date;class FixedDate extends NativeDate{constructor(...args){super(...(args.length?args:[epoch]))}static now(){return epoch}};globalThis.Date=FixedDate},Date.parse('2026-10-01T00:00:00Z'));await page.reload();await prepareControls(page,true)
   const state=page.getByTestId('imagery-state'),canvas=page.locator('canvas')
+  const example=async()=>{
+    const group=page.locator('.control-group').filter({has:page.locator('summary',{hasText:'视角工具'})});
+    if(!await group.evaluate(n=>n.open))await group.locator('summary').click();
+    await page.getByRole('button',{name:'示例近景',exact:true}).click();
+    await group.locator('summary').click();
+  }
   let expectedSource='eox'
   const ready=()=>page.waitForFunction(source=>{const el=document.querySelector('[data-testid="imagery-state"]');return el?.dataset.phase==='ready'&&el.dataset.source===source},expectedSource,{timeout:240000}).catch(async error=>{console.error('NATIVE WINDOW HISTORY',JSON.stringify(await app.evaluate(({BrowserWindow})=>({events:globalThis.__nativeAudit,current:BrowserWindow.getAllWindows().map(w=>({visible:w.isVisible(),minimized:w.isMinimized(),focused:w.isFocused(),bounds:w.getContentBounds()}))}))));console.error('READY FAILURE',await state.evaluate(el=>({...el.dataset})),await page.getByTestId('diagnostics').count()?await page.getByTestId('diagnostics').evaluate(el=>({...el.dataset})):null);throw error})
   const phase=value=>page.waitForFunction(value=>document.querySelector('[data-testid="imagery-state"]')?.dataset.phase===value,value,{timeout:40000})
@@ -58,7 +64,7 @@ try {
   assert.equal(await state.getAttribute('data-has-view'),'true','Global surface remains available while details wait')
   const instantZoom=await read()
   release();held=false
-  await page.getByRole('button',{name:'区域预览',exact:true}).click();await page.waitForFunction(()=>Math.abs(Number(document.querySelector('[data-testid="diagnostics"]')?.dataset.longitude)-116)<.05);await ready();await page.waitForFunction(()=>Math.abs(Number(document.querySelector('[data-testid="diagnostics"]')?.dataset.latitude)-37)<.05)
+  await example();await page.waitForFunction(()=>Math.abs(Number(document.querySelector('[data-testid="diagnostics"]')?.dataset.longitude)-116)<.05);await ready();await page.waitForFunction(()=>Math.abs(Number(document.querySelector('[data-testid="diagnostics"]')?.dataset.latitude)-37)<.05)
   const nearest=await read();assert.ok(Math.abs(nearest.latitude-37)<.05);assert.ok(Number(await state.getAttribute('data-texel-ratio'))<=.9)
   held=mode==='fixture';gate=new Promise(resolve=>release=resolve)
   await page.evaluate(()=>{window.__nearFrames=[];window.__sampling=true;let last=performance.now();function frame(t){if(!window.__sampling)return;window.__nearFrames.push(t-last);last=t;requestAnimationFrame(frame)}requestAnimationFrame(frame)})
@@ -66,7 +72,7 @@ try {
   for(let i=1;i<=40;i++){await page.mouse.move(b.width*.5+Math.sin(i*Math.PI/20)*120,b.height*.5);await page.waitForTimeout(20)}
   await page.mouse.up();await page.waitForTimeout(300)
   const nearFrameStats=await page.evaluate(()=>{window.__sampling=false;const v=window.__nearFrames.filter(x=>x>0).sort((a,b)=>a-b);return {samples:v.length,medianMs:v[Math.floor(v.length*.5)],p95Ms:v[Math.floor(v.length*.95)],over50ms:v.filter(x=>x>50).length}})
-  release();held=false;await page.getByRole('button',{name:'区域预览',exact:true}).click();await page.waitForFunction(()=>Math.abs(Number(document.querySelector('[data-testid="diagnostics"]')?.dataset.longitude)-116)<.05);await ready()
+  release();held=false;await example();await page.waitForFunction(()=>Math.abs(Number(document.querySelector('[data-testid="diagnostics"]')?.dataset.longitude)-116)<.05);await ready()
   await page.getByRole('checkbox',{name:'调试信息',exact:true}).uncheck();await page.mouse.move(10,10);await page.screenshot({path:'test-results/fluid-nearest-'+mode+(exe?'-packaged':'')+'.png'})
   // Returning to a previously seen region must reuse network responses, not download the same tiles again.
   const beforeReturn=new Map(counts)
